@@ -59,5 +59,6 @@ var date2 = new Date(newstr2);
   });
 }
 
+
 var timestamp = firebase.firestore.Timestamp.now().seconds;
 console.log("serial num: ",timestamp-1630000000);
