@@ -9,7 +9,7 @@ firebase.auth().onAuthStateChanged((user) => {
   } else {
     // User is signed out
     // alert("not logged In");
-    window.location.replace('/login.html');
+    window.location.replace('https://testemplateagan.blogspot.com/p/login.html');
   }
 });
 var db = firebase.firestore();
@@ -26,7 +26,7 @@ function logout(){
 //testloads
 
 function loaddata(){
-window.location.assign("/user.html");
+window.location.assign("https://testemplateagan.blogspot.com/p/user.html");
   var fb_user = firebase.auth().currentUser.uid;
 
   console.log(fb_user);
