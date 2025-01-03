@@ -1,14 +1,13 @@
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyDAlth1sxiP-S3r3fVDXhwadVVnEvpdO6s",
-    authDomain: "login-egi-agan.firebaseapp.com",
-    projectId: "login-egi-agan",
-    storageBucket: "login-egi-agan.firebasestorage.app",
-    messagingSenderId: "395059466114",
-    appId: "1:395059466114:web:5c6b0621e9739df6b5c99b"
-  };
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAlth1sxiP-S3r3fVDXhwadVVnEvpdO6s",
+            authDomain: "login-egi-agan.firebaseapp.com",
+            databaseURL: "https://login-egi-agan-default-rtdb.firebaseio.com",
+            projectId: "login-egi-agan",
+            storageBucket: "login-egi-agan.firebasestorage.app",
+            messagingSenderId: "395059466114",
+            appId: "1:395059466114:web:5c6b0621e9739df6b5c99b"
+     };  
 // Initialized Firebase
 
 firebase.auth().onAuthStateChanged((user) => {
