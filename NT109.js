@@ -99,7 +99,7 @@ async function login() {
         const userRef = ref(database, `${USER_COLLECTION}/` + user.uid);
         update(userRef, user_data)
           .then(() => {
-            window.location.href ="DashBoard.html"
+            window.location.href ="dashboard.html"
             return alert("User Has Logged In");
           })
           .catch((error) => {
