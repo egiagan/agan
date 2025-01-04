@@ -10,9 +10,7 @@ var firebaseConfig = {
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
 
-
   firebase.auth.Auth.Persistence.LOCAL;
-
 
   $("#btn-login").click(function()
   {
