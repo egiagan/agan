@@ -166,7 +166,6 @@ var firebaseConfig = {
     }
   });
 
-
 function switchView(view)
 {
     $.get({
