@@ -156,7 +156,7 @@ var firebaseConfig = {
             }
             else
             {
-                window.location.href = "index.html";
+                window.location.href = "accountsettings.html";
             }
         });
     }
