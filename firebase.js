@@ -1,5 +1,3 @@
-var app_firebase = {};
-(function () {
     var firebaseConfig = {
       apiKey: "AIzaSyDAlth1sxiP-S3r3fVDXhwadVVnEvpdO6s",
       authDomain: "login-egi-agan.firebaseapp.com",
@@ -9,6 +7,4 @@ var app_firebase = {};
       messagingSenderId: "395059466114",
       appId: "1:395059466114:web:5c6b0621e9739df6b5c99b"
     };
-    firebase.initializeApp(firebaseConfig);
-    app_firebase = firebase;
-})()
+
