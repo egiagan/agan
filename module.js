@@ -1,4 +1,4 @@
-// module.js content START (PERBAIKAN)
+// module.js content START (PERBAIKAN FINAL)
 
 // --- 1. CONFIGURATION & STATE ---
 // Variabel config dan appState tetap di scope ini, namun elemen-elemen penting
@@ -21,14 +21,13 @@ const config = {
         error: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>',
         warning: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>',
         info: '<path d="M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>',
-        // ⭐ PERBAIKAN: Tambahkan ikon koin jika ingin ikon khusus
         coin: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2.09 9.91c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09L7.91 5.84C6.43 7.32 6 9.08 6 12s.43 4.68 1.91 6.16l2.85-2.22-.81-.62zM12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53zM12 18.62c-1.62 0-3.06-.56-4.21-1.64l-3.15 3.15C6.55 21.91 9.03 23 12 23c4.3 0 8.01-2.47 9.82-6.07l-3.66-2.84c-.87 2.6-3.3 4.53-6.16 4.53z"/>'
     },
     toastColors: {
         success: 'bg-green-500',
         error: 'bg-red-500',
-        warning: 'bg-orange-500', // Warna yang lebih kuat untuk warning
-        info: 'bg-blue-700', // ⭐ PERBAIKAN: Warna info lebih gelap
+        warning: 'bg-orange-500', // Kontras lebih baik
+        info: 'bg-blue-700',   // ⭐ PERBAIKAN: Warna info lebih gelap, kontras lebih baik dengan teks putih
         coinTransaction: 'bg-gradient-to-r from-yellow-600 to-amber-700' // ⭐ Notifikasi khusus koin
     },
     loadingMessages: [
@@ -36,7 +35,8 @@ const config = {
     ]
 };
 
-// Pastikan `elements` dideklarasikan sebelum digunakan (saat DOMContentLoaded)
+// Pastikan `elements` dideklarasikan setelah DOM tersedia.
+// Karena script ini dimuat dengan `defer`, DOM sudah siap saat script dieksekusi.
 const elements = {
     form: document.getElementById('modul-form'),
     generateBtn: document.getElementById('generate-btn'),
@@ -80,18 +80,18 @@ const decodeHtmlEntities = (text) => {
 
 // --- 3. CORE MODULES (UI, Renderer, Exporter, API, FormManager) ---
 
-// ⭐ PERBAIKAN: Eksponensial UI agar bisa diakses global
-// Mengubah `const UI = { ... }` menjadi `window.UI = { ... }`
-// Ini akan menimpa fungsi `showToast` yang mungkin ada di `global.js`
-// dengan versi yang menggunakan `config.toastColors` dan `config.toastIcons` dari `module.js`.
-window.UI = {
+// ⭐ PERBAIKAN: Mengekspos UI ke window
+window.UI = { // Mengubah const menjadi window.UI
     showToast(message, type = 'success') {
         const toast = document.getElementById('toast');
-        // ⭐ PERBAIKAN: Gunakan window.UI.config untuk mengakses konfigurasi
         document.getElementById('toast-message').textContent = message;
-        document.getElementById('toast-icon').innerHTML = config.toastIcons[type]; // Menggunakan `config` dari module.js
-        toast.className = toast.className.replace(/bg-\w+-\d+/g, '');
-        toast.classList.add(config.toastColors[type], 'opacity-100', 'translate-y-0'); // Menggunakan `config` dari module.js
+        // ⭐ PERBAIKAN: Gunakan ikon dan warna dari objek config yang diekspos
+        const iconHTML = config.toastIcons[type] || config.toastIcons['info']; // Fallback
+        const colorClass = config.toastColors[type] || config.toastColors['info']; // Fallback
+
+        document.getElementById('toast-icon').innerHTML = iconHTML;
+        toast.className = toast.className.replace(/bg-\w+-\d+/g, '').replace(/from-\w+-\d+/g, '').replace(/to-\w+-\d+/g, ''); // Hapus semua kelas warna lama
+        toast.classList.add(colorClass, 'opacity-100', 'translate-y-0');
         setTimeout(() => {
             toast.classList.remove('opacity-100', 'translate-y-0');
         }, 4000);
@@ -161,10 +161,6 @@ window.UI = {
         elements.jenjangSelect.value = 'SD';
         this.updateFaseOptions();
         elements.tanggalInput.valueAsDate = new Date();
-        // Style tag ini tidak perlu di dalam initialize, bisa langsung di HTML atau di CSS
-        // const style = document.createElement('style');
-        // style.innerHTML = `.btn { ... }`;
-        // document.head.appendChild(style);
     }
 };
 
@@ -306,6 +302,113 @@ const Renderer = {
                 const langkahPembelajaranTitle = `<h3 class="text-lg font-bold !mt-6 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2"><svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg><span class="gradient-title">Langkah-langkah Pembelajaran</span></h3>`;
 
                 return `<div class="module-render-area text-slate-700 prose-output" id="module-render-area"><div class="text-center mb-10"><h1 class="text-2xl sm:text-3xl font-extrabold google-gradient uppercase">Modul Ajar dengan Pendekatan Deep Learning</h1><h2 class="text-xl font-bold mt-2 !border-none !text-green-600">${mataPelajaran.toUpperCase()}</h2></div><div class="page-break-avoid mb-6 gradient-border-box"><div><h3 class="text-lg font-bold !mt-0 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2"><svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="gradient-title">A. INFORMASI UMUM</span></h3><table class="w-full text-sm"><tbody><tr class="border-b border-slate-200"><td class="py-2.5 px-3 font-semibold text-slate-600 bg-slate-50 w-1/3 rounded-tl-lg">Nama Penyusun</td><td class="py-2.5 px-3">${namaGuru || '...'}</td></tr><tr class="border-b border-slate-200"><td class="py-2.5 px-3 font-semibold text-slate-600 bg-slate-50 w-1/3">NIP</td><td class="py-2.5 px-3">${nipGuru || '-'}</td></tr><tr class="border-b border-slate-200"><td class="py-2.5 px-3 font-semibold text-slate-600 bg-slate-50 w-1/3">Institusi</td><td class="py-2.5 px-3">${namaSekolah}</td></tr><tr class="border-b border-slate-200"><td class="py-2.5 px-3 font-semibold text-slate-600 bg-slate-50 w-1/3">Mata Pelajaran</td><td class="py-2.5 px-3">${mataPelajaran}</td></tr><tr class="border-b border-slate-200"><td class="py-2.5 px-3 font-semibold text-slate-600 bg-slate-50 w-1/3">Materi Ajar</td><td class="py-2.5 px-3">${materi}</td></tr><tr class="border-b border-slate-200"><td class="py-2.5 px-3 font-semibold text-slate-600 bg-slate-50 w-1/3">Jenjang / Fase</td><td class="py-2.5 px-3">${jenjang} / Fase ${fase}</td></tr><tr class="border-b border-slate-200"><td class="py-2.5 px-3 font-semibold text-slate-600 bg-slate-50 w-1/3">Kelas / Semester</td><td class="py-2.5 px-3">${kelas} / ${semester}</td></tr><tr><td class="py-2.5 px-3 font-semibold text-slate-600 bg-slate-50 w-1/3 rounded-bl-lg">Alokasi Waktu</td><td class="py-2.5 px-3">${jumlahSesi} Sesi &times; ${jp} JP (@${menitPerJp} Menit)</td></tr></tbody></table></div></div><h3 class="text-lg font-bold !mt-8 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2 page-break-after"><svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg><span class="gradient-title">B. KOMPONEN INTI</span></h3>${komponenIntiHtml}<h3 class="text-lg font-bold !mt-8 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2 page-break-after"><svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg><span class="gradient-title">C. KEGIATAN PEMBELAJARAN</span></h3>${alurBelajarHtml}${langkahPembelajaranTitle}${kegiatanHtml}<div class="page-break-avoid mt-8 mb-6 gradient-border-box page-break-after"><div><h3 class="text-lg font-bold !mt-0 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2"><svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="gradient-title">D. ASESMEN / PENILAIAN</span></h3><div class="text-sm max-w-none">${this.renderContent(asesmen)}</div></div></div><div class="page-break-avoid mb-6 gradient-border-box"><div><h3 class="text-lg font-bold !mt-0 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2"><svg class="w-5 h-5 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg><span class="gradient-title">E. PENGAYAAN DAN REMEDIAL</span></h3><div class="text-sm max-w-none">${this.renderContent(pengayaanRemedial)}</div></div></div><div class="page-break-avoid mb-6 gradient-border-box"><div><h3 class="text-lg font-bold !mt-0 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2"><svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg><span class="gradient-title">F. REFLEKSI</span></h3><div class="text-sm max-w-none">${this.renderContent(refleksi)}</div></div></div><h3 class="text-lg font-bold !mt-8 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2 page-break-after"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg><span class="gradient-title">G. LAMPIRAN</span></h3>${lampiranHtml}<div class="signature-section mt-16 pt-8 page-break-avoid"><table class="w-full border-none text-center text-sm"><tbody class="border-none"><tr class="border-none"><td class="border-none p-2 w-1/2">Mengetahui,<br>Kepala Sekolah</td><td class="border-none p-2 w-1/2">${lokasi}, ${formattedDate}<br>${finalJabatanGuru}</td></tr><tr class="border-none"><td class="border-none h-24"></td><td class="border-none h-24"></td></tr><tr class="border-none"><td class="border-none p-2 font-bold underline">${namaKepalaSekolah || '____________________'}</td><td class="border-none p-2 font-bold underline">${namaGuru || '____________________'}</td></tr><tr class="border-none"><td class="border-none p-2">NIP. ${nipKepalaSekolah || '................................................'}</td><td class="border-none p-2">NIP. ${nipGuru || '................................................'}</td></tr></tbody></table></div></div>`;
+            }
+        };
+
+        const Exporter = {
+            downloadDoc() {
+                const contentArea = document.getElementById('module-render-area');
+                if (!contentArea || !contentArea.innerHTML) { window.UI.showToast("Tidak ada konten untuk diunduh.", "warning"); return; }
+                const styles = `<style>body{font-family: 'Times New Roman', Times, serif; font-size: 12pt;} table{border-collapse: collapse; width: 100%;} th, td{border: 1px solid black; padding: 8px; text-align: left; vertical-align: top;} h1,h2,h3,h4,h5{font-family: 'Arial', sans-serif;}</style>`;
+                const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Modul Ajar</title>${styles}</head><body>`;
+                const footer = "</body></html>";
+                const sourceHTML = header + contentArea.innerHTML + footer;
+                const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+                const fileDownload = document.createElement("a");
+                document.body.appendChild(fileDownload);
+                fileDownload.href = source;
+                fileDownload.download = 'Modul-Ajar.doc';
+                fileDownload.click();
+                document.body.removeChild(fileDownload);
+            },
+            downloadPdf() {
+                if (!appState.generatedContentData) { window.UI.showToast("Tidak ada konten untuk diunduh.", "warning"); return; }
+                const pdfBtn = elements.pdfBtn;
+                const originalBtnHTML = pdfBtn.innerHTML;
+                pdfBtn.disabled = true;
+                pdfBtn.innerHTML = `<svg class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>Membuat...</span>`;
+                window.UI.showToast("Mempersiapkan PDF, mohon tunggu...", "warning");
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
+                    const { namaGuru, nipGuru, namaSekolah, jenjang, fase, kelas, semester, mataPelajaran, materi, namaKepalaSekolah, nipKepalaSekolah, lokasi, tanggal, jabatanGuru, jabatanGuruTeks, jumlahSesi, jp, menitPerJp, ...contentData } = appState.generatedContentData;
+                    const pageHeight = doc.internal.pageSize.height; const pageWidth = doc.internal.pageSize.width; const margin = 40; let yPos = margin;
+                    const checkPageSpace = (h) => { if (yPos + h >= pageHeight - margin) { doc.addPage(); yPos = margin; } };
+                    const addText = (text, options) => { const { size, style, x = margin, maxWidth = pageWidth - margin * 2, color = [0,0,0] } = options; doc.setFontSize(size).setFont(undefined, style).setTextColor(color[0], color[1], color[2]); const lines = doc.splitTextToSize(text, maxWidth); checkPageSpace(lines.length * size * 1.2); doc.text(lines, x, yPos); yPos += (lines.length * size * 1.15) + (options.spacing || 0); };
+                    const addTitle = (text, level) => { const s = { h1: { size: 18, style: 'bold', spacing: 15, color: [0,0,0] }, h2: { size: 14, style: 'bold', spacing: 10, color: [52, 168, 83] }, h3: { size: 12, style: 'bold', spacing: 8, color: [66, 133, 244] } }[level]; doc.setTextColor(s.color[0], s.color[1], s.color[2]); addText(text.toUpperCase(), { ...s }); };
+                    
+                    const parseAndDrawMarkdown = (markdown) => {
+                        if (typeof markdown !== 'string') return;
+                        const lines = markdown.split('\n');
+
+                        for (let i = 0; i < lines.length; i++) {
+                            let line = decodeHtmlEntities(lines[i].trim());
+                            line = line.replace(/&#8226;/g, '•');
+                            line = line.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1');
+
+                            if (line.startsWith('#####')) {
+                                addText(line.replace(/^#{5}\s*/, ''), { size: 10, style: 'bold', spacing: 6, color: [0,0,0] });
+                            } else if (line.startsWith('####')) {
+                                addText(line.replace(/^#{4}\s*/, ''), { size: 11, style: 'bold', spacing: 6, color: [0,0,0] });
+                            } else if (line.startsWith('###')) {
+                                addTitle(line.replace(/^#{3}\s*/, ''), 'h3');
+                            } else if (line.startsWith('##')) {
+                                addTitle(line.replace(/^#{2}\s*/, ''), 'h2');
+                            } else if (line.startsWith('|')) {
+                                const tableData = { head: [], body: [] };
+                                const headers = decodeHtmlEntities(line).slice(1, -1).split('|').map(h => h.trim());
+                                tableData.head.push(headers);
+                                i++; 
+                                
+                                while (i + 1 < lines.length && lines[i + 1].trim().startsWith('|')) {
+                                    i++;
+                                    const cells = lines[i].trim().slice(1, -1).split('|').map(c => c.trim().replace(/\\n/g, '\n'));
+                                    tableData.body.push(cells);
+                                }
+                                
+                                checkPageSpace(50);
+                                doc.autoTable({
+                                    head: tableData.head,
+                                    body: tableData.body,
+                                    startY: yPos,
+                                    theme: 'grid',
+                                    styles: { fontSize: 9, cellPadding: 5, overflow: 'linebreak' },
+                                    headStyles: { fillColor: [239, 246, 255], textColor: [29, 78, 216], fontStyle: 'bold' },
+                                    didDrawPage: (data) => { yPos = data.cursor.y; }
+                                });
+                                yPos = doc.autoTable.previous.finalY + 15;
+
+                            } else if (line.match(/^(\-|\*|•)\s/)) {
+                                const cleanLine = line.replace(/^(\-|\*|•)\s*/, '');
+                                addText(`- ${cleanLine}`, { size: 10, style: 'normal', x: margin + 10, maxWidth: pageWidth - margin * 2 - 10, spacing: 4, color: [55, 65, 81] });
+                            } else if (line.match(/^\d+\.\s/)) {
+                                addText(line, { size: 10, style: 'normal', x: margin + 10, maxWidth: pageWidth - margin * 2 - 10, spacing: 4, color: [55, 65, 81] });
+                            } else if (line) {
+                                addText(line, { size: 10, style: 'normal', spacing: 10, color: [55, 65, 81] });
+                            }
+                        }
+                    };
+
+                    const addSignatureBlock = () => { checkPageSpace(120); yPos += 40; const finalJabatanGuru = jabatanGuru === 'sendiri' ? jabatanGuruTeks : jabatanGuru; const formattedDate = new Date(tanggal + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); const col1X = margin; const col2X = pageWidth / 2; const startY = yPos; doc.setFontSize(10).setFont(undefined, 'normal'); doc.text('Mengetahui,', col1X, startY); doc.text('Kepala Sekolah', col1X, startY + 12); doc.text(namaKepalaSekolah || '____________________', col1X, startY + 72); doc.text(`NIP. ${nipKepalaSekolah || '..............................'}`, col1X, startY + 84); doc.text(`${lokasi}, ${formattedDate}`, col2X, startY); doc.text(finalJabatanGuru, col2X, startY + 12); doc.text(namaGuru || '____________________', col2X, startY + 72); doc.text(`NIP. ${nipGuru || '..............................'}`, col2X, startY + 84); yPos = startY + 96; };
+                    
+                    addTitle(`Modul Ajar: ${mataPelajaran}`, 'h1'); addText(materi, { size: 12, style: 'normal', spacing: 20 });
+                    addTitle('A. Informasi Umum', 'h2'); doc.autoTable({ startY: yPos, theme: 'grid', body: [['Nama Penyusun', namaGuru], ['Institusi', namaSekolah], ['Jenjang/Fase', `${jenjang} / Fase ${fase}`], ['Kelas/Semester', `${kelas} / ${semester}`], ['Alokasi Waktu', `${jumlahSesi} Sesi x ${jp} JP (@${menitPerJp} Menit)`]], styles: { fontSize: 9, cellPadding: 5 }, didDrawPage: data => yPos = data.cursor.y + 15 }); yPos = doc.autoTable.previous.finalY + 15;
+                    addTitle('B. Komponen Inti', 'h2'); parseAndDrawMarkdown(`### Kompetensi Awal\n${contentData.kompetensiAwal}\n### Capaian Pembelajaran\n${contentData.capaianPembelajaran}\n### Tujuan Pembelajaran\n${contentData.tujuanPembelajaran}`);
+                    addTitle('C. Kegiatan Pembelajaran', 'h2'); 
+                    if (contentData.alurBelajar) {
+                        addTitle('Alur Belajar', 'h3');
+                        parseAndDrawMarkdown(contentData.alurBelajar);
+                    }
+                    parseAndDrawMarkdown(contentData.kegiatanPembelajaran);
+                    addTitle('D. Asesmen', 'h2'); parseAndDrawMarkdown(contentData.asesmen);
+                    addTitle('E. Pengayaan dan Remedial', 'h2'); parseAndDrawMarkdown(contentData.pengayaanRemedial);
+                    addTitle('F. Refleksi', 'h2'); parseAndDrawMarkdown(contentData.refleksi);
+                    addTitle('G. Lampiran', 'h2'); parseAndDrawMarkdown(`### Lembar Kerja Peserta Didik\n${contentData.lkpd}\n### Bahan Bacaan\n${contentData.bahanBacaan}\n### Glosarium\n${contentData.glosarium}\n### Daftar Pustaka\n${contentData.daftarPustaka}\n### Rubrik Penilaian\n${contentData.rubrikPenilaian}`);
+                    addSignatureBlock();
+                    doc.save('Modul-Ajar-AI-Generated.pdf');
+                    window.UI.showToast("Unduhan PDF berhasil!", "success"); // Gunakan window.UI
+                } catch (error) { console.error("Gagal membuat PDF:", error); window.UI.showToast("Terjadi kesalahan saat membuat PDF.", "error"); } // Gunakan window.UI
+                finally { pdfBtn.disabled = false; pdfBtn.innerHTML = originalBtnHTML; }
             }
         };
 
@@ -528,25 +631,21 @@ Berikut adalah struktur JSON yang harus Anda hasilkan:
 
         // --- 4. MAIN APPLICATION LOGIC & EVENT LISTENERS ---
 
-        // ⭐ PERBAIKAN: Pindahkan logika inti handleFormSubmit ke fungsi global
-        window.originalHandleFormSubmitLogic = async function() {
+        async function handleFormSubmit(e) {
+            e.preventDefault();
             const dimensiCheckboxes = document.querySelectorAll('input[name="dimensi"]:checked');
             if (dimensiCheckboxes.length < 2 || dimensiCheckboxes.length > 4) {
-                // Asumsi `UI.showToast` sudah diekspos ke window
-                window.UI.showToast("Pilih 2 hingga 4 Dimensi Profil Lulusan.", "warning");
-                throw new Error("Invalid Dimensi Profil Lulusan selection.");
+                UI.showToast("Pilih 2 hingga 4 Dimensi Profil Lulusan.", "warning");
+                return;
             }
             const validGeminiKeys = config.GEMINI_API_KEYS.filter(key => !key.startsWith("GANTI_DENGAN_API_KEY_GEMINI"));
             if (validGeminiKeys.length === 0) {
-                window.UI.showToast("Tidak ada API Key Gemini yang valid.", "error");
+                UI.showToast("Tidak ada API Key Gemini yang valid.", "error");
                 elements.outputContent.innerHTML = `<div class="flex flex-col items-center justify-center min-h-[300px] text-center text-red-500 p-8 border-2 border-dashed border-red-300 rounded-2xl"><strong>API Key Error:</strong><p class="mt-2">Silakan masukkan setidaknya satu API Key Gemini yang valid di dalam kode JavaScript.</p></div>`;
                 elements.placeholder.classList.add('hidden');
-                throw new Error("No valid Gemini API keys.");
+                return;
             }
-            
-            // `setLoadingState` akan dipanggil oleh `new_module_cost_logic.js`
-            // window.UI.setLoadingState(true); 
-
+            UI.setLoadingState(true);
             try {
                 const prompt = API.createPromptFromForm();
                 const generatedContent = await API.generateWithGemini(prompt);
@@ -555,24 +654,43 @@ Berikut adalah struktur JSON yang harus Anda hasilkan:
                 appState.generatedContentData = { ...userInput, ...generatedContent };
                 elements.outputContent.innerHTML = Renderer.createFinalHtml(appState.generatedContentData);
                 elements.actionButtons.classList.remove('hidden');
-                // window.UI.showToast("Modul ajar berhasil dibuat!", "success"); // Notifikasi ditangani oleh new_module_cost_logic.js
+                UI.showToast("Modul ajar berhasil dibuat!", "success");
             } catch (error) {
-                console.error(`Error during generation (original logic):`, error);
-                // window.UI.showToast(finalErrorMessage, "error"); // Notifikasi ditangani oleh new_module_cost_logic.js
-                throw error; // Lempar error agar new_module_cost_logic.js bisa menangkap dan mengembalikan koin
-            } finally {
-                // window.UI.setLoadingState(false); // Notifikasi ditangani oleh new_module_cost_logic.js
-            }
-        };
+                console.error(`Error during generation:`, error);
+                // PERBAIKAN: Logika penanganan error yang lebih spesifik
+                let finalErrorMessage;
+                let errorTitle = "Terjadi Kesalahan";
 
-        // ⭐ PERBAIKAN: Fungsi setupEventListeners yang di panggil di DOMContentLoaded ini
-        // hanya akan mengatur event listener yang TIDAK terkait langsung dengan proses generate
-        // yang sekarang di-handle oleh new_module_cost_logic.js.
-        // Hapus listener 'submit' dari sini!
-        function setupEventListenersForModuleJS() { // Nama fungsi diganti agar jelas
-            // elements.form.addEventListener('submit', handleFormSubmit); // ⭐ HAPUS BARIS INI!
+                if (error.message.includes("overloaded") || error.message.includes("503") || error.message.includes("429")) {
+                    finalErrorMessage = "Layanan AI sedang sibuk atau kelebihan beban. Mohon coba lagi dalam beberapa saat.";
+                    errorTitle = "Layanan Sibuk";
+                } else if (error.message.includes("API key not valid")) {
+                    finalErrorMessage = "Kunci API yang digunakan tidak valid. Pastikan kunci API Anda benar dan memiliki izin yang cukup.";
+                    errorTitle = "Kunci API Tidak Valid";
+                } else if (error.message.includes("Invalid JSON format")) {
+                    finalErrorMessage = "AI memberikan respons dengan format yang tidak terduga. Silakan coba lagi. Jika masalah berlanjut, ubah sedikit input Anda.";
+                    errorTitle = "Format Respons Tidak Sesuai";
+                } else if (error.message.includes("All API keys and retries failed")) {
+                    finalErrorMessage = "Semua percobaan koneksi ke layanan AI gagal. Periksa koneksi internet Anda dan validitas semua kunci API.";
+                    errorTitle = "Koneksi Gagal";
+                } else {
+                    finalErrorMessage = "Terjadi kesalahan yang tidak diketahui. Silakan periksa konsol browser untuk detail teknis.";
+                }
+
+                elements.outputContent.innerHTML = `<div class="flex flex-col items-center justify-center min-h-[300px] text-center text-red-500 p-8 border-2 border-dashed border-red-300 rounded-2xl"><strong>${errorTitle}:</strong><p class="mt-2">${finalErrorMessage}</p></div>`;
+                elements.placeholder.classList.add('hidden');
+                elements.outputContent.classList.remove('hidden');
+                UI.showToast(finalErrorMessage, "error");
+            } finally {
+                UI.setLoadingState(false);
+            }
+        }
+
+        function setupEventListeners() {
+            elements.form.addEventListener('submit', handleFormSubmit);
             elements.form.addEventListener('input', FormManager.saveState);
             
+            // PERBAIKAN: Tombol reset sekarang membuka modal
             elements.resetBtn.addEventListener('click', UI.showResetModal);
             elements.confirmResetBtn.addEventListener('click', FormManager.reset);
             elements.cancelResetBtn.addEventListener('click', UI.hideResetModal);
@@ -621,33 +739,11 @@ Berikut adalah struktur JSON yang harus Anda hasilkan:
             // Dependent dropdown listeners
             elements.jenjangSelect.addEventListener('change', () => UI.updateFaseOptions());
             elements.faseSelect.addEventListener('change', () => UI.updateKelasOptions());
-            
-            // Setup dynamic fields
-            FormManager.setupDynamicFields();
-            // Load state (jika ini dipanggil di dalam DOMContentLoaded)
-            FormManager.loadState();
         }
 
         // --- 5. INITIALIZE APP ---
-        // ⭐ PERBAIKAN: Eksponensial objek-objek utama ke window agar bisa diakses oleh new_module_cost_logic.js
-        window.UI = UI;
-        window.API = API;
-        window.Renderer = Renderer;
-        window.Exporter = Exporter; // Export Exporter juga
-        window.FormManager = FormManager; // Memungkinkan akses ke saveState, loadState, setupDynamicFields, dll.
-        window.appState = appState; // Memungkinkan new_module_cost_logic.js mengakses appState.generatedContentData
-        window.moduleConfig = config; // Expose config jika dibutuhkan oleh script lain
-
-        // ⭐ PERBAIKAN: Pindahkan inisialisasi awal ke fungsi `initModuleApp`
-        // Agar bisa dipanggil secara berurutan setelah global.js di HTML.
-        window.initModuleApp = function() {
-            UI.initialize(); // Inisialisasi UI dasar form (dropdown, tanggal)
-            setupEventListenersForModuleJS(); // Setup event listener yang bukan handle generate
-        };
-
-        // Hapus `document.addEventListener('DOMContentLoaded', ...)` yang membungkus seluruh file.
-        // Karena skrip akan dimuat dengan `defer`, eksekusi akan menjaga urutan.
-        // `global.js` akan memanggil `setupEventListeners` yang kemudian akan memanggil
-        // `window.initModuleApp()` setelah semua elemen DOM tersedia.
-
-// module.js content END
+        UI.initialize();
+        FormManager.setupDynamicFields();
+        FormManager.loadState();
+        setupEventListeners();
+    });
